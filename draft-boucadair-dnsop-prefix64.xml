@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc tocompact="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc comments="yes"?>
+<?rfc inline="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-boucadair-dnsop-prefix64" ipr="trust200902"
+     updates="6147">
+  <front>
+    <title abbrev="PREFIX64 in DNS Messages">An EDNS0 Option for Sharing
+    Pref64::/n</title>
+
+    <author fullname="Mohamed Boucadair" initials="M." surname="Boucadair">
+      <organization>Orange</organization>
+
+      <address>
+        <postal>
+          <street></street>
+
+          <city>Rennes</city>
+
+          <region></region>
+
+          <code>35000</code>
+
+          <country>France</country>
+        </postal>
+
+        <email>mohamed.boucadair@orange.com</email>
+      </address>
+    </author>
+
+    <date />
+
+    <abstract>
+      <t>This document specifies an Extension Mechanisms for DNS (EDNS0)
+      option to convey the IPv6 prefix used to build IPv4-converted IPv6
+      addresses. When conveyed in a DNS query, the option communicates the
+      IPv6 prefix used in the network from which the query was originated.
+      Such a network is assumed to enable a Network Address and Protocol
+      Translation from IPv6 clients to IPv4 servers (NAT64) function.
+      DNS64-capable servers will use that prefix to build synthesized AAAA
+      records, rather than relying on a preconfigured prefix. When conveyed in
+      a DNS reply, the option conveys the IPv6 prefix that is used by a
+      DNS64-capable server to synthesized AAAA records. Such information helps
+      to automatically detect mismatches between the local NAT64 configuration
+      and the one enforced at the DNS64 server. Also, security-aware and
+      validating hosts may use the new EDNS0 option to signal the presence of
+      a NAT64 function. That signal is used by the DNS server to fill the
+      additional section of the AAAA reply in order to supply A RRs of the
+      target. Dual queries and delays are thus avoided. </t>
+
+      <t>This document updates RFC 6147.<!--
+--></t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>Network Address and Protocol Translation from IPv6 clients to IPv4
+      servers (NAT64) function <xref target="RFC6146"></xref> is widely
+      deployed, especially in cellular networks. Such a function is solicited
+      when an IPv6-only host communicates with an IPv4-only server. For that
+      communication to take place, IPv4-only servers are represented in the
+      IPv6 domain by synthesizing IPv6 addresses based on IPv4 addresses
+      (called, IPv4-converted IPv6 addresses). The address translation
+      algorithm is specified in <xref target="RFC6052"></xref>. In addition to
+      an IPv4 address, this algorithm uses a dedicated IPv6 prefix as input.
+      Such a prefix can be the Well-Known Prefix (i.e., 64:ff9b::/96) or a
+      Network-Specific Prefix (NSP). </t>
+
+      <t>DNS64 <xref target="RFC6147"></xref> specifies a companion mechanism
+      to represent IPv4-only servers in the IPv6 domains. Such a mechanism
+      relies upon the same address translation algorithm as the one used by
+      the NAT64 function. When both DNS64 and NAT64 are deployed in the same
+      network, the same IPv6 prefix must be used to feed the address
+      translation algorithm (Section 2 of <xref target="RFC6147"></xref>). A
+      sample deployment scenario is depicted in <xref target="sample"></xref>.
+      Note that no mechanism is supported to synchronize the prefix configured
+      in both functions. In particular, there is no communication between the
+      DNS64 and NAT64 functions. </t>
+
+      <t><figure align="center" anchor="sample"
+          title="Sample Deployment (RFC6146)">
+          <artwork align="center"><![CDATA[+---------------------+         +---------------+
+|IPv6 network         |         |    IPv4       |
+|           |  +-------------+  |  network      |
+|           |--| Name server |--|               |
+|           |  | with DNS64  |  |  +----+       |
+|  +----+   |  +-------------+  |  | H2 |       |
+|  | H1 |---|         |         |  +----+       |
+|  +----+   |      +-------+    |  192.0.2.1    |
+|2001:db8::1|------| NAT64 |----|               |
+|           |      +-------+    |               |
+|           |         |         |               |
++---------------------+         +---------------+]]></artwork>
+        </figure></t>
+
+      <t>In networks where DNS64 is enabled, some deployments uses distinct IP
+      addresses to reach the "normal" DNS server and the DNS64 server. This is
+      used to demux queries issues by IPv6-only hosts from those from
+      dual-stack hosts. The mechanism defined in this document allows to use
+      the same DNS configuration for both IPv6-only and dual-stack hosts. </t>
+
+      <t>NAT64 does not require a DNS64 server to be enabled and, even if it
+      is used, it does not mandate that it is enabled in the same network. As
+      such, several public DNS64 servers are currently available for use over
+      the Internet. However, these servers are restricted to the Well-Known
+      Prefix. Users who decides to bypass their network provisioned DNS64
+      server may experience connectivity issues if an NSP is used in their
+      local networks. This document solves that issues by specifying a
+      mechanism that allows to use any DNS64 server, not only the one hosted
+      in the network that enables the NAT64. </t>
+
+      <t>If the IPv4 address of a remote IPv4-only server is known to an
+      IPv6-only (e.g., IPv4 literals, legacy DNS), the IPv6-only host can
+      proceed with local address synthesis. For example, the stub resolver on
+      the IPv6-only host tries to obtain (native) AAAA records, and if they
+      are not found, the DNS64 function on the host will query for A records
+      and then synthesize AAAA records. This requires the host's stub-resolver
+      to learn the prefix used for IPv6/IPv4 translation and synthesize AAAA
+      records accordingly. Many mechanisms were specified to discover such
+      prefix, e.g.:<list style="symbols">
+          <t><xref target="RFC7225"></xref> defines a new Port Control
+          Protocol (PCP) option <xref target="RFC6887"></xref> to inform hosts
+          about the Pref64::/n and suffix used by a NAT64 function.</t>
+
+          <t><xref target="RFC8781"></xref> specifies a Neighbor Discovery
+          option used in Router Advertisements (RAs) to communicate NAT64
+          prefixes to hosts.</t>
+        </list></t>
+
+      <t>The reader may refer to <xref target="RFC7050"></xref><xref
+      target="RFC7051"></xref> for an analysis on the issues related to the
+      discovery of the Pref64::/n.</t>
+
+      <t>In some environments two DNS queries are issued even if the host is
+      serviced using an IPv6-only connectivity (typically, AAA followed by A).
+      These two queries are sent sequentially, which introduces an extra delay
+      when the target resource is IPv4-only. Such delay can be prevented owing
+      to the mechanism specified in this document. As a side effect, the
+      mechanism optimizes the load on DNS64 servers as only one query will be
+      used instead of two.</t>
+
+      <t>This document updates <xref target="RFC6146"></xref> as it extends
+      the DNS64 processing to also consider the supplied Pref64::/n in an
+      EDNS0 option to synthesize AAA records. In particular statements such as
+      "locally configured Pref64::/n" are updated to "locally configured
+      Pref64::/n or Pref64::/n supplied in an EDNS0 PREFIX64 option". To that
+      aim, this document leverages the aforementioned discovery mechanism to
+      detect the presence of a NAT64 function.</t>
+
+      <t>In summary, the mechanism defined in this document is meant to: </t>
+
+      <t><list style="symbols">
+          <t>Provide a signal to indicate the support of NAT64 in a
+          network.</t>
+
+          <t>Allow a DNS64 server to service clients with distinct NAT64
+          prefixes.</t>
+
+          <t>Avoid delays when both A and AAA queries are required.</t>
+
+          <t>Optimize load on DNS server as only one query is generated rather
+          that duplicating load when both AAA and A queries are required.</t>
+        </list></t>
+    </section>
+
+    <section title="Terminology">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+      "OPTIONAL" in this document are to be interpreted as described in BCP 14
+      <xref target="RFC2119"></xref><xref target="RFC8174"></xref> when, and
+      only when, they appear in all capitals, as shown here.</t>
+
+      <t>The reader should be familiar with terms and concepts defined in
+      <xref target="RFC6052"></xref>, <xref target="RFC6146"></xref>, and
+      <xref target="RFC6147"></xref>. Also, the document makes use of terms
+      defined in <xref target="RFC8499"></xref>.</t>
+
+      <t>"IPv6-only host" refers to a host with an IPv6-only connectivity.
+      </t>
+    </section>
+
+    <section title="Option Format">
+      <t>The format of the PREFIX64 EDNS0 option is shown in <xref
+      target="edns0"></xref>. This format adheres to the guidelines specified
+      in Section 6.1.2 of <xref target="RFC6891"></xref>.</t>
+
+      <t><figure align="center" anchor="edns0"
+          title="PREFIX64 EDNS0 Option Format">
+          <artwork><![CDATA[               +0 (MSB)                            +1 (LSB)
+    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ 0: |                          OPTION-CODE                          |
+    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ 2: |                         OPTION-LENGTH                         |
+    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ 4: |                                                               |
+    /                          PREFIX64                             /
+    /                                                               /
+    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+]]></artwork>
+        </figure></t>
+
+      <t>The description of the fields is as follows: </t>
+
+      <t><list style="hanging">
+          <t hangText="OPTION-CODE:">MUST be set to TBA (<xref
+          target="IANA"></xref>).</t>
+
+          <t hangText="OPTION-LENGTH:">Size (in octets) of the enclosed
+          Pref64::/n. Allowed values are: 0, 4, 5, 6, 7, 8, and 9. <vspace
+          blankLines="1" />The receiver MUST ignore the option if the
+          OPTION-LENGTH is not set to one of those values. <vspace
+          blankLines="1" />When the value is set to 0, this indicates the
+          presence of a NAT64 function in the network from which the query is
+          generated. </t>
+
+          <t hangText="PREFIX64:">This field identifies the IPv6 unicast
+          prefix to be used for constructing an IPv4-converted IPv6 address
+          from an IPv4 address as specified in Section 2.2 of <xref
+          target="RFC6052"></xref>. In such case, the prefix length MUST be
+          32, 40, 48, 56, 64, and 96 bits (i.e., OPTION-LENGTH must be set to
+          4, 5, 6, 7, 8, and 9) as specified in <xref
+          target="RFC6052"></xref>. <vspace blankLines="1" />This prefix can
+          be the Well-Known Prefix (i.e., 64:ff9b::/96) or a Network-Specific
+          Prefix. <vspace blankLines="1" />The address synthesis MUST follow
+          the guidelines documented in <xref target="RFC6052"></xref>.</t>
+        </list></t>
+    </section>
+
+    <section title="Protocol Description">
+      <t>A stub-resolver on an IPv6-only host that discovers the presence of
+      NAT64 inserts the PREFIX64 EDNS0 option in its AAAA queries. If the
+      stub-resolver is on a multi-interfaced device, the Pref64::/n conveyed
+      in the PREFIX64 EDNS0 option MUST be the one that is associated with the
+      interface over which the DNS query is sent.</t>
+
+      <t>A stub-resolver that is prepared to handle A RRs enclosed in the
+      additional section (e.g., security-aware and validating hosts) MAY
+      insert a PREFIX64 EDNS0 option with an OPTION-LENGTH set to zero in its
+      AAAA DNS queries. Such option is used by intermediate/authoritative
+      servers as a signal to include A RR in the additional section. </t>
+
+      <t>If an intermediate resolver enables a DNS64 function, then the AAAA
+      query is treated as in <xref target="RFC6147"></xref> with the exception
+      that supplied valid Pref64::/n are used for synthesizing AAAA records.
+      The reply MAY echo the PREFIX64 EDNS0 option.</t>
+
+      <t>An intermediate resolver MAY be configured to forward AAAA queries
+      that carry an PREFIX64 EDNS0 option with non-null prefixes to a DNS64
+      server. Matching queries are thus relayed to that DNS64 server. Upon
+      receipt of such queries, the AAAA query is treated as in <xref
+      target="RFC6147"></xref> with the exception that supplied valid
+      Pref64::/n are used for synthesizing AAAA records. This prevents from
+      exposing distinct IP addresses for "normal" DNS and DNS64
+      operations.</t>
+
+      <t>A DNS64 MAY be instructed to return the Pref64::/n that it uses when
+      synthesizing AAAA records. If so, the DNS64 MUST include the PREFIX64
+      option in its replies that carry synthesized AAAA records. This is
+      superior to the current situation where users have to check the
+      documentation (when available) to determine the prefix used by a DNS64
+      server for address synthesis. Absent such checks, errors can be
+      encountered to service IPv6-only hosts. The use of PREFIX64 option
+      allows to automatically detect mismatches between the prefix used in the
+      network (that is, the NAT64 function) and the one that is used by a
+      DNS64 function. </t>
+
+      <t>A stub-resolver MAY determine whether the returned AAAA includes a
+      native or IPv4-converted IPv6 by comparing the first bits of the IPv6
+      address with the local Pref64::/n.</t>
+    </section>
+
+    <section anchor="Security" title="Security Considerations">
+      <t>Generic EDNS0 security considerations are discussed in Section 8 of
+      <xref target="RFC6891"></xref>.</t>
+
+      <t>As discussed in Section 5.5 of <xref target="RFC6147"></xref>, a
+      security-aware and validating host has to perform the DNS64 function
+      locally. This specification does not prevent that. The only enhancement
+      is the receipt of A RR in the additional section of AAAA replies. </t>
+    </section>
+
+    <section anchor="IANA" title="IANA Considerations">
+      <t>This document requests IANA to assign the following new code from the
+      "DNS EDNS0 Option Codes (OPT)" registry available at <xref
+      target="DNS-OPT"></xref>:</t>
+
+      <t><figure align="center">
+          <artwork align="center"><![CDATA[Value      Name          Status        Reference
+-----      --------      --------      -------------
+TBA        PREFIX64      Standard      [ThisDocument]
+]]></artwork>
+        </figure></t>
+    </section>
+
+    <section anchor="Acknowledgements" title="Acknowledgements">
+      <t>TBC.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119"?>
+
+      <?rfc include='reference.RFC.8174'?>
+
+      <?rfc include='reference.RFC.6891'?>
+
+      <?rfc include='reference.RFC.6052'?>
+
+      <?rfc include='reference.RFC.6146'?>
+
+      <?rfc include='reference.RFC.6147'?>
+    </references>
+
+    <references title="Informative References">
+      <?rfc include='reference.RFC.7225'?>
+
+      <?rfc include='reference.RFC.7051'?>
+
+      <?rfc include='reference.RFC.7050'?>
+
+      <?rfc include='reference.RFC.8781'?>
+
+      <?rfc include='reference.RFC.8499'?>
+
+      <?rfc include='reference.RFC.6887'?>
+
+      <reference anchor="DNS-OPT"
+                 target="http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-11">
+        <front>
+          <title>DNS EDNS0 Option Codes (OPT)</title>
+
+          <author fullname="IANA">
+            <organization></organization>
+          </author>
+
+          <date />
+        </front>
+      </reference>
+    </references>
+  </back>
+</rfc>
