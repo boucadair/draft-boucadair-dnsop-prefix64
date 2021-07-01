@@ -54,7 +54,7 @@
       validating hosts may use the new EDNS0 option to signal the presence of
       a NAT64 function. That signal is used by the DNS server to fill the
       additional section of the AAAA reply in order to supply A RRs of the
-      target. Dual queries and delays are thus avoided. </t>
+      target. Dual queries and delays are thus avoided.</t>
 
       <t>This document updates RFC 6147.<!--
 --></t>
@@ -73,7 +73,7 @@
       algorithm is specified in <xref target="RFC6052"></xref>. In addition to
       an IPv4 address, this algorithm uses a dedicated IPv6 prefix as input.
       Such a prefix can be the Well-Known Prefix (i.e., 64:ff9b::/96) or a
-      Network-Specific Prefix (NSP). </t>
+      Network-Specific Prefix (NSP).</t>
 
       <t>DNS64 <xref target="RFC6147"></xref> specifies a companion mechanism
       to represent IPv4-only servers in the IPv6 domains. Such a mechanism
@@ -84,7 +84,7 @@
       sample deployment scenario is depicted in <xref target="sample"></xref>.
       Note that no mechanism is supported to synchronize the prefix configured
       in both functions. In particular, there is no communication between the
-      DNS64 and NAT64 functions. </t>
+      DNS64 and NAT64 functions.</t>
 
       <t><figure align="center" anchor="sample"
           title="Sample Deployment (RFC6146)">
@@ -102,11 +102,11 @@
 +---------------------+         +---------------+]]></artwork>
         </figure></t>
 
-      <t>In networks where DNS64 is enabled, some deployments uses distinct IP
+      <t>In networks where DNS64 is enabled, some deployments use distinct IP
       addresses to reach the "normal" DNS server and the DNS64 server. This is
       used to demux queries issues by IPv6-only hosts from those from
       dual-stack hosts. The mechanism defined in this document allows to use
-      the same DNS configuration for both IPv6-only and dual-stack hosts. </t>
+      the same DNS configuration for both IPv6-only and dual-stack hosts.</t>
 
       <t>NAT64 does not require a DNS64 server to be enabled and, even if it
       is used, it does not mandate that it is enabled in the same network. As
@@ -114,19 +114,20 @@
       the Internet. However, these servers are restricted to the Well-Known
       Prefix. Users who decides to bypass their network provisioned DNS64
       server may experience connectivity issues if an NSP is used in their
-      local networks. This document solves that issues by specifying a
-      mechanism that allows to use any DNS64 server, not only the one hosted
-      in the network that enables the NAT64. </t>
+      local networks (Section 4.4 of <xref target="RFC8683"></xref>). This
+      document solves that issues by specifying a mechanism that allows to use
+      any DNS64 server, not only the one hosted in the network that enables
+      the NAT64.</t>
 
       <t>If the IPv4 address of a remote IPv4-only server is known to an
-      IPv6-only (e.g., IPv4 literals, legacy DNS), the IPv6-only host can
+      IPv6-only host (e.g., IPv4 literals, legacy DNS), the IPv6-only host can
       proceed with local address synthesis. For example, the stub resolver on
       the IPv6-only host tries to obtain (native) AAAA records, and if they
-      are not found, the DNS64 function on the host will query for A records
-      and then synthesize AAAA records. This requires the host's stub-resolver
-      to learn the prefix used for IPv6/IPv4 translation and synthesize AAAA
-      records accordingly. Many mechanisms were specified to discover such
-      prefix, e.g.:<list style="symbols">
+      are not found, the DNS64 function on the host will send a query for A
+      records and then synthesize AAAA records. This behavior requires the
+      host's stub-resolver to learn the prefix used for IPv6/IPv4 translation
+      and synthesize AAAA records accordingly. Many mechanisms were specified
+      to discover such prefix, e.g.:<list style="symbols">
           <t><xref target="RFC7225"></xref> defines a new Port Control
           Protocol (PCP) option <xref target="RFC6887"></xref> to inform hosts
           about the Pref64::/n and suffix used by a NAT64 function.</t>
@@ -156,7 +157,7 @@
       aim, this document leverages the aforementioned discovery mechanism to
       detect the presence of a NAT64 function.</t>
 
-      <t>In summary, the mechanism defined in this document is meant to: </t>
+      <t>In summary, the mechanism defined in this document is meant to:</t>
 
       <t><list style="symbols">
           <t>Provide a signal to indicate the support of NAT64 in a
@@ -184,8 +185,7 @@
       <xref target="RFC6147"></xref>. Also, the document makes use of terms
       defined in <xref target="RFC8499"></xref>.</t>
 
-      <t>"IPv6-only host" refers to a host with an IPv6-only connectivity.
-      </t>
+      <t>"IPv6-only host" refers to a host with an IPv6-only connectivity.</t>
     </section>
 
     <section title="Option Format">
@@ -209,7 +209,7 @@
 ]]></artwork>
         </figure></t>
 
-      <t>The description of the fields is as follows: </t>
+      <t>The description of the fields is as follows:</t>
 
       <t><list style="hanging">
           <t hangText="OPTION-CODE:">MUST be set to TBA (<xref
@@ -221,7 +221,7 @@
           OPTION-LENGTH is not set to one of those values. <vspace
           blankLines="1" />When the value is set to 0, this indicates the
           presence of a NAT64 function in the network from which the query is
-          generated. </t>
+          generated.</t>
 
           <t hangText="PREFIX64:">This field identifies the IPv6 unicast
           prefix to be used for constructing an IPv4-converted IPv6 address
@@ -247,7 +247,7 @@
       additional section (e.g., security-aware and validating hosts) MAY
       insert a PREFIX64 EDNS0 option with an OPTION-LENGTH set to zero in its
       AAAA DNS queries. Such option is used by intermediate/authoritative
-      servers as a signal to include A RR in the additional section. </t>
+      servers as a signal to include A RR in the additional section.</t>
 
       <t>If an intermediate resolver enables a DNS64 function, then the AAAA
       query is treated as in <xref target="RFC6147"></xref> with the exception
@@ -272,7 +272,7 @@
       encountered to service IPv6-only hosts. The use of PREFIX64 option
       allows to automatically detect mismatches between the prefix used in the
       network (that is, the NAT64 function) and the one that is used by a
-      DNS64 function. </t>
+      DNS64 function.</t>
 
       <t>A stub-resolver MAY determine whether the returned AAAA includes a
       native or IPv4-converted IPv6 by comparing the first bits of the IPv6
@@ -286,7 +286,7 @@
       <t>As discussed in Section 5.5 of <xref target="RFC6147"></xref>, a
       security-aware and validating host has to perform the DNS64 function
       locally. This specification does not prevent that. The only enhancement
-      is the receipt of A RR in the additional section of AAAA replies. </t>
+      is the receipt of A RR in the additional section of AAAA replies.</t>
     </section>
 
     <section anchor="IANA" title="IANA Considerations">
@@ -334,6 +334,8 @@ TBA        PREFIX64      Standard      [ThisDocument]
       <?rfc include='reference.RFC.8499'?>
 
       <?rfc include='reference.RFC.6887'?>
+
+      <?rfc include='reference.RFC.8683'?>
 
       <reference anchor="DNS-OPT"
                  target="http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-11">
