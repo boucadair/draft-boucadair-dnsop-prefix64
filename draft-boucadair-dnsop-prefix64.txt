@@ -4,9 +4,9 @@
 
 Network Working Group                                       M. Boucadair
 Internet-Draft                                                    Orange
-Updates: 6147 (if approved)                                June 23, 2021
-Intended status: Standards Track
-Expires: December 25, 2021
+Updates: 6147 (if approved)                               5 January 2022
+Intended status: Standards Track                                        
+Expires: 9 July 2022
 
 
                  An EDNS0 Option for Sharing Pref64::/n
@@ -49,29 +49,28 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 25, 2021.
+   This Internet-Draft will expire on 9 July 2022.
 
 
 
-Boucadair               Expires December 25, 2021               [Page 1]
+Boucadair                  Expires 9 July 2022                  [Page 1]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
 Copyright Notice
 
-   Copyright (c) 2021 IETF Trust and the persons identified as the
+   Copyright (c) 2022 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
-   (https://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-   carefully, as they describe your rights and restrictions with respect
-   to this document.  Code Components extracted from this document must
-   include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
 
 Table of Contents
 
@@ -85,7 +84,7 @@ Table of Contents
    8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
      8.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
      8.2.  Informative References  . . . . . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Introduction
 
@@ -106,15 +105,15 @@ Table of Contents
    the same address translation algorithm as the one used by the NAT64
    function.  When both DNS64 and NAT64 are deployed in the same
    network, the same IPv6 prefix must be used to feed the address
-
-
-
-Boucadair               Expires December 25, 2021               [Page 2]
-
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
-
-
    translation algorithm (Section 2 of [RFC6147]).  A sample deployment
+
+
+
+Boucadair                  Expires 9 July 2022                  [Page 2]
+
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
+
+
    scenario is depicted in Figure 1.  Note that no mechanism is
    supported to synchronize the prefix configured in both functions.  In
    particular, there is no communication between the DNS64 and NAT64
@@ -135,7 +134,7 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
                    Figure 1: Sample Deployment (RFC6146)
 
-   In networks where DNS64 is enabled, some deployments uses distinct IP
+   In networks where DNS64 is enabled, some deployments use distinct IP
    addresses to reach the "normal" DNS server and the DNS64 server.
    This is used to demux queries issues by IPv6-only hosts from those
    from dual-stack hosts.  The mechanism defined in this document allows
@@ -146,35 +145,36 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
    is used, it does not mandate that it is enabled in the same network.
    As such, several public DNS64 servers are currently available for use
    over the Internet.  However, these servers are restricted to the
-   Well-Known Prefix.  Users who decides to bypass their network
-   provisioned DNS64 server may experience connectivity issues if an NSP
-   is used in their local networks.  This document solves that issues by
-   specifying a mechanism that allows to use any DNS64 server, not only
-   the one hosted in the network that enables the NAT64.
+   Well-Known Prefix.  Users who decides to bypass their network-
+   provisioned DNS64 server (e.g., including both trusted (access
+   network, typically) and untrusted networks such as Airports) may
+   experience connectivity issues if an NSP is used in their local
+   networks (Section 4.4 of [RFC8683]).  This document solves that
+   issues by specifying a mechanism that allows to use any DNS64 server,
+   not only the one hosted in the network that enables the NAT64.
 
    If the IPv4 address of a remote IPv4-only server is known to an
-   IPv6-only (e.g., IPv4 literals, legacy DNS), the IPv6-only host can
-   proceed with local address synthesis.  For example, the stub resolver
-   on the IPv6-only host tries to obtain (native) AAAA records, and if
-   they are not found, the DNS64 function on the host will query for A
-   records and then synthesize AAAA records.  This requires the host's
-   stub-resolver to learn the prefix used for IPv6/IPv4 translation and
-   synthesize AAAA records accordingly.  Many mechanisms were specified
-   to discover such prefix, e.g.:
+   IPv6-only host (e.g., IPv4 literals, legacy DNS), the IPv6-only host
+   can proceed with local address synthesis.  For example, the stub
+   resolver on the IPv6-only host tries to obtain (native) AAAA records,
+   and if they are not found, the DNS64 function on the host will send a
+   query for A records and then synthesize AAAA records.  This behavior
+   requires the host's stub-resolver to learn the prefix used for IPv6/
+   IPv4 translation and synthesize AAAA records accordingly.  Many
+   mechanisms were specified to discover such prefix, e.g.:
 
 
 
-
-Boucadair               Expires December 25, 2021               [Page 3]
+Boucadair                  Expires 9 July 2022                  [Page 3]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
-   o  [RFC7225] defines a new Port Control Protocol (PCP) option
+   *  [RFC7225] defines a new Port Control Protocol (PCP) option
       [RFC6887] to inform hosts about the Pref64::/n and suffix used by
       a NAT64 function.
 
-   o  [RFC8781] specifies a Neighbor Discovery option used in Router
+   *  [RFC8781] specifies a Neighbor Discovery option used in Router
       Advertisements (RAs) to communicate NAT64 prefixes to hosts.
 
    The reader may refer to [RFC7050][RFC7051] for an analysis on the
@@ -190,7 +190,7 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
    This document updates [RFC6146] as it extends the DNS64 processing to
    also consider the supplied Pref64::/n in an EDNS0 option to
-   synthesize AAAA records.  In particular statements such as "locally
+   synthesize AAA records.  In particular statements such as "locally
    configured Pref64::/n" are updated to "locally configured Pref64::/n
    or Pref64::/n supplied in an EDNS0 PREFIX64 option".  To that aim,
    this document leverages the aforementioned discovery mechanism to
@@ -198,15 +198,15 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
    In summary, the mechanism defined in this document is meant to:
 
-   o  Provide a signal to indicate the support of NAT64 in a network.
+   *  Provide a signal to indicate the support of NAT64 in a network.
 
-   o  Allow a DNS64 server to service clients with distinct NAT64
+   *  Allow a DNS64 server to service clients with distinct NAT64
       prefixes.
 
-   o  Avoid delays when both A and AAAA queries are required.
+   *  Avoid delays when both A and AAA queries are required.
 
-   o  Optimize load on DNS server as only one query is generated rather
-      that duplicating load when both AAAA and A queries are required.
+   *  Optimize load on DNS server as only one query is generated rather
+      that duplicating load when both AAA and A queries are required.
 
 2.  Terminology
 
@@ -221,9 +221,9 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
 
 
-Boucadair               Expires December 25, 2021               [Page 4]
+Boucadair                  Expires 9 July 2022                  [Page 4]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
    The reader should be familiar with terms and concepts defined in
@@ -249,8 +249,7 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
        /                                                               /
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
-
-                  Figure 2: PREFIX64 EDNS0 Option Format
+                   Figure 2: PREFIX64 EDNS0 Option Format
 
    The description of the fields is as follows:
 
@@ -277,9 +276,10 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
 
 
-Boucadair               Expires December 25, 2021               [Page 5]
+
+Boucadair                  Expires 9 July 2022                  [Page 5]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
       The address synthesis MUST follow the guidelines documented in
@@ -300,18 +300,18 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
    authoritative servers as a signal to include A RR in the additional
    section.
 
-   If an intermediate resolver enables a DNS64 function, then the AAAA
-   query is treated as in [RFC6147] with the exception that supplied
-   valid Pref64::/n are used for synthesizing AAAA records.  The reply
-   MAY echo the PREFIX64 EDNS0 option.
+   If a DNS server enables a DNS64 function, then the AAAA query is
+   treated as in [RFC6147] with the exception that supplied valid
+   Pref64::/n are used for synthesizing AAAA records.  The reply MAY
+   echo the PREFIX64 EDNS0 option.
 
-   An intermediate resolver MAY be configured to forward AAAA queries
-   that carry an PREFIX64 EDNS0 option with non-null prefixes to a DNS64
-   server.  Matching queries are thus relayed to that DNS64 server.
-   Upon receipt of such queries, the AAAA query is treated as in
-   [RFC6147] with the exception that supplied valid Pref64::/n are used
-   for synthesizing AAAA records.  This prevents from exposing distinct
-   IP addresses for "normal" DNS and DNS64 operations.
+   A DNS forwarder MAY be configured to forward AAAA queries that carry
+   an PREFIX64 EDNS0 option with non-null prefixes to a DNS64 server.
+   Such queries are thus relayed to that DNS64 server.  Upon receipt of
+   such queries, the AAAA query is treated as in [RFC6147] with the
+   exception that supplied valid Pref64::/n are used for synthesizing
+   AAAA records.  This prevents from exposing distinct IP addresses of
+   DNS servers for "normal" DNS and DNS64 operations.
 
    A DNS64 MAY be instructed to return the Pref64::/n that it uses when
    synthesizing AAAA records.  If so, the DNS64 MUST include the
@@ -324,18 +324,18 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
    used in the network (that is, the NAT64 function) and the one that is
    used by a DNS64 function.
 
-   A stub-resolver MAY determine whether the returned AAAA includes a
+   A stub-resolver SHOULD determine whether the returned AAAA includes a
    native or IPv4-converted IPv6 by comparing the first bits of the IPv6
-   address with the local Pref64::/n.
+   address with the local Pref64::/n.  This check is also meant to
+   determine that an on-path attacker modifying the PREFIX64 option.
 
 
 
 
 
-
-Boucadair               Expires December 25, 2021               [Page 6]
+Boucadair                  Expires 9 July 2022                  [Page 6]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
 5.  Security Considerations
@@ -346,7 +346,7 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
    As discussed in Section 5.5 of [RFC6147], a security-aware and
    validating host has to perform the DNS64 function locally.  This
    specification does not prevent that.  The only enhancement is the
-   receipt of A RR in the additional section of AAAA replies.
+   receipt of A RRs in the additional section of AAAA replies.
 
 6.  IANA Considerations
 
@@ -359,7 +359,7 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
 7.  Acknowledgements
 
-   TBC.
+   Thanks to Tiru Reddy for the comments.
 
 8.  References
 
@@ -389,9 +389,9 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
 
 
-Boucadair               Expires December 25, 2021               [Page 7]
+Boucadair                  Expires 9 July 2022                  [Page 7]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
 
    [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
@@ -433,26 +433,28 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
               Terminology", BCP 219, RFC 8499, DOI 10.17487/RFC8499,
               January 2019, <https://www.rfc-editor.org/info/rfc8499>.
 
+   [RFC8683]  Palet Martinez, J., "Additional Deployment Guidelines for
+              NAT64/464XLAT in Operator and Enterprise Networks",
+              RFC 8683, DOI 10.17487/RFC8683, November 2019,
+              <https://www.rfc-editor.org/info/rfc8683>.
+
    [RFC8781]  Colitti, L. and J. Linkova, "Discovering PREF64 in Router
               Advertisements", RFC 8781, DOI 10.17487/RFC8781, April
               2020, <https://www.rfc-editor.org/info/rfc8781>.
 
-Author's Address
 
 
 
-
-
-
-
-Boucadair               Expires December 25, 2021               [Page 8]
+Boucadair                  Expires 9 July 2022                  [Page 8]
 
-Internet-Draft          PREFIX64 in DNS Messages               June 2021
+Internet-Draft          PREFIX64 in DNS Messages            January 2022
 
+
+Author's Address
 
    Mohamed Boucadair
    Orange
-   Rennes  35000
+   35000 Rennes
    France
 
    Email: mohamed.boucadair@orange.com
@@ -499,6 +501,4 @@ Internet-Draft          PREFIX64 in DNS Messages               June 2021
 
 
 
-
-
-Boucadair               Expires December 25, 2021               [Page 9]
+Boucadair                  Expires 9 July 2022                  [Page 9]

@@ -112,12 +112,13 @@
       is used, it does not mandate that it is enabled in the same network. As
       such, several public DNS64 servers are currently available for use over
       the Internet. However, these servers are restricted to the Well-Known
-      Prefix. Users who decides to bypass their network provisioned DNS64
-      server may experience connectivity issues if an NSP is used in their
-      local networks (Section 4.4 of <xref target="RFC8683"></xref>). This
-      document solves that issues by specifying a mechanism that allows to use
-      any DNS64 server, not only the one hosted in the network that enables
-      the NAT64.</t>
+      Prefix. Users who decides to bypass their network-provisioned DNS64
+      server (e.g., including both trusted (access network, typically) and
+      untrusted networks such as Airports) may experience connectivity issues
+      if an NSP is used in their local networks (Section 4.4 of <xref
+      target="RFC8683"></xref>). This document solves that issues by
+      specifying a mechanism that allows to use any DNS64 server, not only the
+      one hosted in the network that enables the NAT64.</t>
 
       <t>If the IPv4 address of a remote IPv4-only server is known to an
       IPv6-only host (e.g., IPv4 literals, legacy DNS), the IPv6-only host can
@@ -142,10 +143,10 @@
       discovery of the Pref64::/n.</t>
 
       <t>In some environments two DNS queries are issued even if the host is
-      serviced using an IPv6-only connectivity (typically, AAA followed by A).
-      These two queries are sent sequentially, which introduces an extra delay
-      when the target resource is IPv4-only. Such delay can be prevented owing
-      to the mechanism specified in this document. As a side effect, the
+      serviced using an IPv6-only connectivity (typically, AAAA followed by
+      A). These two queries are sent sequentially, which introduces an extra
+      delay when the target resource is IPv4-only. Such delay can be prevented
+      owing to the mechanism specified in this document. As a side effect, the
       mechanism optimizes the load on DNS64 servers as only one query will be
       used instead of two.</t>
 
@@ -249,19 +250,18 @@
       AAAA DNS queries. Such option is used by intermediate/authoritative
       servers as a signal to include A RR in the additional section.</t>
 
-      <t>If an intermediate resolver enables a DNS64 function, then the AAAA
-      query is treated as in <xref target="RFC6147"></xref> with the exception
-      that supplied valid Pref64::/n are used for synthesizing AAAA records.
-      The reply MAY echo the PREFIX64 EDNS0 option.</t>
+      <t>If a DNS server enables a DNS64 function, then the AAAA query is
+      treated as in <xref target="RFC6147"></xref> with the exception that
+      supplied valid Pref64::/n are used for synthesizing AAAA records. The
+      reply MAY echo the PREFIX64 EDNS0 option.</t>
 
-      <t>An intermediate resolver MAY be configured to forward AAAA queries
-      that carry an PREFIX64 EDNS0 option with non-null prefixes to a DNS64
-      server. Matching queries are thus relayed to that DNS64 server. Upon
-      receipt of such queries, the AAAA query is treated as in <xref
-      target="RFC6147"></xref> with the exception that supplied valid
-      Pref64::/n are used for synthesizing AAAA records. This prevents from
-      exposing distinct IP addresses for "normal" DNS and DNS64
-      operations.</t>
+      <t>A DNS forwarder MAY be configured to forward AAAA queries that carry
+      an PREFIX64 EDNS0 option with non-null prefixes to a DNS64 server. Such
+      queries are thus relayed to that DNS64 server. Upon receipt of such
+      queries, the AAAA query is treated as in <xref target="RFC6147"></xref>
+      with the exception that supplied valid Pref64::/n are used for
+      synthesizing AAAA records. This prevents from exposing distinct IP
+      addresses of DNS servers for "normal" DNS and DNS64 operations.</t>
 
       <t>A DNS64 MAY be instructed to return the Pref64::/n that it uses when
       synthesizing AAAA records. If so, the DNS64 MUST include the PREFIX64
@@ -274,9 +274,10 @@
       network (that is, the NAT64 function) and the one that is used by a
       DNS64 function.</t>
 
-      <t>A stub-resolver MAY determine whether the returned AAAA includes a
+      <t>A stub-resolver SHOULD determine whether the returned AAAA includes a
       native or IPv4-converted IPv6 by comparing the first bits of the IPv6
-      address with the local Pref64::/n.</t>
+      address with the local Pref64::/n. This check is also meant to determine
+      that an on-path attacker modifying the PREFIX64 option.</t>
     </section>
 
     <section anchor="Security" title="Security Considerations">
@@ -286,7 +287,7 @@
       <t>As discussed in Section 5.5 of <xref target="RFC6147"></xref>, a
       security-aware and validating host has to perform the DNS64 function
       locally. This specification does not prevent that. The only enhancement
-      is the receipt of A RR in the additional section of AAAA replies.</t>
+      is the receipt of A RRs in the additional section of AAAA replies.</t>
     </section>
 
     <section anchor="IANA" title="IANA Considerations">
@@ -303,7 +304,7 @@ TBA        PREFIX64      Standard      [ThisDocument]
     </section>
 
     <section anchor="Acknowledgements" title="Acknowledgements">
-      <t>TBC.</t>
+      <t>Thanks to Tiru Reddy for the comments.</t>
     </section>
   </middle>
 
